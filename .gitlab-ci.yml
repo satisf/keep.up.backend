@@ -1,0 +1,27 @@
+image: amazoncorretto:11-alpine-jdk
+
+stages:
+  - build
+before_script:
+  - apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
+  - python3 -m ensurepip
+  - apk add build-base
+  - apk add python3-dev
+  - pip3 install awscli --upgrade
+  - pip3 install aws-sam-cli --upgrade
+  - apk add maven
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+compile:
+  only:
+    - master
+  stage: build
+  script:
+    - mvn clean package
+    - aws s3 cp ./target/keep.up.backend-0.0.1-SNAPSHOT-aws.jar s3://keep-up-lambda/keep.up.backend.jar
+    - aws lambda update-function-code --function-name backend --s3-bucket keep-up-lambda --s3-key keep.up.backend.jar --region eu-central-1
+    - aws s3 sync ./flyway s3://flyway/keep.up.db

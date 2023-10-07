@@ -1,0 +1,12 @@
+.idea
+
+.gradle
+
+build
+builds
+target
+
+.terraform
+
+*.tfvars
+*.env
